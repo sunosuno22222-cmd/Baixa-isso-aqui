@@ -1,0 +1,151 @@
+<div class="flex flex-col h-screen bg-white text-gray-900 overflow-hidden font-sans">
+  <!-- Header -->
+  <header class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-gray-100">
+        <img src="/logo.jpg" alt="XZAFE AI" class="w-full h-full object-cover">
+      </div>
+      <div>
+        <h1 class="text-xl font-semibold tracking-tight">XZAFE AI</h1>
+        <p class="text-xs text-gray-400 font-medium uppercase tracking-widest">Logic & Intelligence</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button (click)="chatService.clearHistory()" class="p-2 hover:bg-gray-50 rounded-full transition-colors text-gray-500" title="Limpar histórico">
+        <mat-icon>delete_outline</mat-icon>
+      </button>
+      <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-2" title="XZAFE Online"></div>
+    </div>
+  </header>
+
+  <!-- Chat Area -->
+  <main #scrollWindow class="flex-1 overflow-y-auto overflow-x-hidden min-w-0 px-4 py-8 md:px-0">
+    <div class="max-w-3xl mx-auto space-y-12 pb-24 w-full min-w-0 overflow-x-hidden">
+      
+      <!-- Welcome State -->
+      @if (chatService.messages().length === 0) {
+        <div class="flex flex-col items-center justify-center py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div class="w-24 h-24 rounded-3xl overflow-hidden shadow-xl mb-6 border-4 border-white ring-1 ring-gray-100">
+            <img src="/logo.jpg" alt="XZAFE AI" class="w-full h-full object-cover">
+          </div>
+          <h2 class="text-3xl font-bold tracking-tight mb-3">Bem-vindo à XZAFE AI</h2>
+          <p class="text-gray-500 max-w-md leading-relaxed">
+            Sua assistente focada em raciocínio puro, calma e precisão. Como posso ajudar com sua lógica hoje?
+          </p>
+          <div class="grid grid-cols-2 gap-4 mt-12 w-full max-w-lg">
+            <button (click)="chatForm.get('message')?.setValue('Explique o paradoxo de Fermi com calma.')" class="p-4 border border-gray-100 rounded-2xl hover:border-black hover:bg-gray-50 cursor-pointer transition-all text-left">
+              <mat-icon class="text-gray-400 mb-2">science</mat-icon>
+              <p class="text-sm font-medium">Paradoxo de Fermi</p>
+            </button>
+            <button (click)="chatForm.get('message')?.setValue('Analise este código e sugira melhorias de performance.')" class="p-4 border border-gray-100 rounded-2xl hover:border-black hover:bg-gray-50 cursor-pointer transition-all text-left">
+              <mat-icon class="text-gray-400 mb-2">code</mat-icon>
+              <p class="text-sm font-medium">Análise de Código</p>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Messages -->
+      @for (msg of chatService.messages(); track $index) {
+        <div class="group">
+          @if (msg.role === 'user') {
+            <div class="flex justify-end mb-4 pr-4">
+              <div class="max-w-[85%] bg-black text-white px-6 py-4 rounded-[2rem] rounded-tr-none shadow-lg text-sm sm:text-base leading-relaxed">
+                {{ msg.content }}
+                @if (msg.files?.length) {
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    @for (file of msg.files; track $index) {
+                      <div class="text-[10px] bg-white/10 px-2 py-1 rounded flex items-center gap-1 border border-white/5">
+                        <mat-icon class="!text-[14px] w-4 h-4">attach_file</mat-icon>
+                        <span class="truncate max-w-[100px]">{{ file.name }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="flex gap-4 mb-4">
+              <div class="flex-1">
+                <div class="text-xs font-bold text-black/20 uppercase tracking-widest mb-4 flex items-center gap-2">
+                   <span>XZAFE</span>
+                   <div class="h-[1px] flex-1 bg-gray-100"></div>
+                </div>
+                <div class="pl-2 min-w-0 flex-1 overflow-hidden">
+                  <app-markdown-renderer [content]="msg.content"></app-markdown-renderer>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Generating Indicator -->
+      @if (chatService.isGenerating()) {
+        <div class="flex gap-4 animate-pulse">
+           <div class="flex-1 pl-2">
+             <div class="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
+             <div class="h-4 bg-gray-100 rounded w-1/2"></div>
+           </div>
+        </div>
+      }
+    </div>
+  </main>
+
+  <!-- Input Area -->
+  <footer class="p-6 bg-white border-t border-gray-100/50 shadow-[0_-15px_40px_rgb(0,0,0,0.01)] lg:pb-10">
+    <div class="max-w-3xl mx-auto">
+      <form [formGroup]="chatForm" (ngSubmit)="onSend()" class="relative flex items-center gap-3 bg-gray-50 border border-gray-200/60 rounded-3xl p-1.5 pr-3 focus-within:ring-1 focus-within:ring-black focus-within:bg-white transition-all duration-300">
+        <textarea 
+          formControlName="message"
+          rows="1"
+          placeholder="Como posso ajudar hoje?"
+          (keydown.enter)="$event.preventDefault(); onSend()"
+          class="flex-1 bg-transparent border-none focus:ring-0 resize-none py-3 px-4 text-sm sm:text-base max-h-40 overflow-y-auto"
+        ></textarea>
+
+        <button 
+          type="submit" 
+          [disabled]="chatForm.invalid || chatService.isGenerating()"
+          class="bg-black text-white w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm hover:scale-105 active:scale-95 disabled:opacity-20 disabled:scale-100 transition-all"
+        >
+          <mat-icon class="!text-[20px] w-5 h-5">arrow_upward</mat-icon>
+        </button>
+      </form>
+      <div class="text-[9px] text-center text-gray-400 mt-4 font-bold uppercase tracking-[0.2em] opacity-40">
+        XZAFE AI CORE — PROCESSO LÓGICO ESTÁVEL
+      </div>
+    </div>
+  </footer>
+
+  <!-- Code Viewer Overlay -->
+  @if (codeViewer.activeFile(); as file) {
+    <div class="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in duration-200">
+      <header class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-gray-50 rounded-lg text-gray-500">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-gray-900">{{ file.name }}</h2>
+            <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest">{{ file.language }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button (click)="chatService.copyToClipboard(codeViewer.activeContent())" class="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-sm">
+            <mat-icon class="!text-sm">content_copy</mat-icon>
+            COPIAR CÓDIGO
+          </button>
+          <button (click)="codeViewer.close()" class="p-2 hover:bg-gray-100 rounded-full transition-all text-gray-500">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </header>
+      <main class="flex-1 overflow-auto bg-gray-50/50 p-6">
+        <div class="max-w-5xl mx-auto">
+          <app-markdown-renderer [content]="'```' + file.language + '\n' + codeViewer.activeContent() + '\n```'" [showFullCode]="true"></app-markdown-renderer>
+        </div>
+      </main>
+    </div>
+  }
+</div>

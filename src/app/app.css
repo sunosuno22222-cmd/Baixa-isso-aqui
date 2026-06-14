@@ -1,0 +1,57 @@
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e5e7eb;
+}
+
+/* Base styles */
+:host {
+  display: block;
+  height: 100%;
+}
+
+textarea:focus {
+  outline: none;
+}
+
+/* Animations */
+.animate-in {
+  animation-duration: 300ms;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeInOnly;
+}
+
+@keyframes fadeInOnly {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.markdown-content {
+  font-family: inherit;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+::ng-deep .markdown-content pre {
+  max-width: 100%;
+}

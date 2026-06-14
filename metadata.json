@@ -1,0 +1,6 @@
+{
+  "name": "XZAFE AI",
+  "description": "Powerful AI chat with file support and streaming capabilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
